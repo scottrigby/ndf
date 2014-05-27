@@ -39,6 +39,12 @@ function ndf_menu_alter(&$items) {
       'position' => 1,
       'redirect' => 'file/%id/edit',
     ),
+    'taxonomy_term' => array(
+      'uri' => 'taxonomy/term/%taxonomy_term/view',
+      'base' => 'taxonomy/term/%taxonomy_term',
+      'position' => 2,
+      'redirect' => 'taxonomy/term/%taxonomy_term/edit',
+    ),
   );
   foreach ($entity_items as $entity_type => $item) {
     $items[$item['uri']]['access callback'] = FALSE;
@@ -120,13 +126,11 @@ function ndf_allowed_paths() {
     // For fun, support contrib admin_menu.module paths.
     'admin_menu*',
 
-    // Node.
+    // Entity paths.
     'node*',
-
+    'taxonomy*',
     // File (core) and File entity contrib module.
     'file*',
-    // @todo Account for dynamic paths, like "Manage file display" tab from
-    //   file_entity_menu().
   );
 }
 

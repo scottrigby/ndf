@@ -21,6 +21,60 @@ function ndf_menu_alter(&$items) {
       $items[$path]['access callback'] = FALSE;
     }
   }
+
+  // Redirects from frontend entity to edit form. This is so we don't have to
+  // modify every Drupal admin form that links to a frontend display - such as
+  // node_admin_content() - and also so we don't need to explicitly white list
+  // every entity path but their frontend URI callback paths.
+  $entity_items = array(
+    'node' => array(
+      'uri' => 'node/%node/view',
+      'base' => 'node/%node',
+      'position' => 1,
+      'redirect' => 'node/%id/edit',
+    ),
+    'file' => array(
+      'uri' => 'file/%file/view',
+      'base' => 'file/%file',
+      'position' => 1,
+      'redirect' => 'file/%id/edit',
+    ),
+  );
+  foreach ($entity_items as $entity_type => $item) {
+    $items[$item['uri']]['access callback'] = FALSE;
+    $items[$item['base']]['page callback'] = 'ndf_entity_redirect';
+    $items[$item['base']]['page arguments'] = array($item['position'], $entity_type, $item['redirect']);
+  }
+}
+
+/**
+ * Menu callback: Redirects an entity view page to another page.
+ *
+ * @param object $entity
+ *   The loaded entity.
+ * @param string $entity_type
+ *   The entity type.
+ * @param string $redirect_pattern
+ *   A string representing the redirect path pattern. May include tokens:
+ *   - %entity_id: The entity ID.
+ *   The reason for this is in Drupal 7 there no generic edit uri, equivalent to
+ *   the display 'uri callback' in hook_entity_info().
+ */
+function ndf_entity_redirect($entity, $entity_type, $redirect_pattern) {
+  list($id, $rid, $bundle) = entity_extract_ids($entity_type, $entity);
+  $path = str_replace('%id', $id, $redirect_pattern);
+
+  if (!isset($path)) {
+    $path = variable_get('site_frontpage');
+
+    // Give admins a friendly message, explaining what happened. Anyone else
+    // should 403 anyway.
+    if (user_access('access administration pages')) {
+      drupal_set_message(t('There is no support for viewing this entity.'));
+    }
+  }
+
+  drupal_goto($path);
 }
 
 /**
@@ -67,27 +121,10 @@ function ndf_allowed_paths() {
     'admin_menu*',
 
     // Node.
-    // List explicitly, becuase we want to omit 'node/%node/view' and
-    // 'node/%node/revisions/%/view'.
-    'node/add*',
-    'node/*/edit',
-    'node/*/delete',
-    'node/*/revisions',
-    'node/*/revisions/*/revert',
-    'node/*/revisions/*/delete',
+    'node*',
 
-    // File (core).
-    'file/ajax',
-    'file/progress',
-
-    // Contrib File entity module.
-    'file/add',
-    'file/add/upload',
-    // @todo Change paths like this to MENU_DEFAULT_LOCAL_TASK.
-    'file/*/usage',
-    'file/*/download',
-    'file/*/edit',
-    'file/*/delete',
+    // File (core) and File entity contrib module.
+    'file*',
     // @todo Account for dynamic paths, like "Manage file display" tab from
     //   file_entity_menu().
   );

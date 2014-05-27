@@ -47,9 +47,11 @@ function ndf_menu_alter(&$items) {
     ),
   );
   foreach ($entity_items as $entity_type => $item) {
-    $items[$item['uri']]['access callback'] = FALSE;
-    $items[$item['base']]['page callback'] = 'ndf_entity_redirect';
-    $items[$item['base']]['page arguments'] = array($item['position'], $entity_type, $item['redirect']);
+    if (isset($items[$item['uri']]) && $items[$item['base']]) {
+      $items[$item['uri']]['access callback'] = FALSE;
+      $items[$item['base']]['page callback'] = 'ndf_entity_redirect';
+      $items[$item['base']]['page arguments'] = array($item['position'], $entity_type, $item['redirect']);
+    }
   }
 }
 

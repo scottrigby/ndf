@@ -17,9 +17,8 @@ function ndf_install() {
   // @see ndf_menu()
   menu_rebuild();
 
-  // Set the frontpage. Note that only users with permission will see this. If
-  // we want a friendly login redirect, enable the r4032login module.
-  variable_set('site_frontpage', 'admin');
+  // Set admin_theme.
+  variable_set('theme_default', 'seven');
 }
 
 /**
@@ -34,11 +33,6 @@ function ndf_uninstall() {
   // Cleanup NDF variables.
   variable_del('ndf_allowed_paths');
   variable_del('ndf_disable_module_list');
-
-  // Reset core variables.
-  // The site_frontpage variable resets to 'node' when empty.
-  // @see system_site_information_settings_validate()
-  variable_del('site_frontpage');
 }
 
 /**

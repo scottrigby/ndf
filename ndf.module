@@ -24,6 +24,17 @@ function ndf_menu_alter(&$items) {
 }
 
 /**
+ * Implements hook_boot().
+ */
+function ndf_boot() {
+  // Change variables here rather than on hook_install(), hook_uninstall(),
+  // hook_enable(), and hook_disable().
+  global $conf;
+  drupal_load('module', 'user');
+  $conf['site_frontpage'] = user_access('access administration pages') ? 'admin' : 'user';
+}
+
+/**
  * Defines a default white list of allowed paths to be spared.
  *
  * This can be overridden by the Drupal variable 'ndf_allowed_paths'.

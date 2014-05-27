@@ -85,6 +85,7 @@ function ndf_disable_module_list() {
     'blog',
     'block',
     'color',
+    'comment',
     'contact',
     'contextual',
     // Investigate why we can't disable this (apart from required = TRUE).

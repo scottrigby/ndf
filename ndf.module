@@ -65,6 +65,20 @@ function ndf_allowed_paths() {
     'js*',
     // For fun, support contrib admin_menu.module paths.
     'admin_menu*',
+
+    // Node.
+    // List explicitly, becuase we want to omit 'node/%node/view' and
+    // 'node/%node/revisions/%/view'.
+    'node/add*',
+    'node/*/edit',
+    'node/*/delete',
+    'node/*/revisions',
+    'node/*/revisions/*/revert',
+    'node/*/revisions/*/delete',
+
+    // File (core).
+    'file/ajax',
+    'file/progress',
   );
 }
 

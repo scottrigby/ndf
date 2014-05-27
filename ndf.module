@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations, and API functions for Nuke Drupal Frontend module.
+ */
+
+/**
+ * Implements hook_menu_alter().
+ */
+function ndf_menu_alter(&$items) {
+  $allowed_paths = variable_get('ndf_allowed_paths', ndf_allowed_paths());
+  // Separate with \n for drupal_match_path().
+  $pages = implode(PHP_EOL, $allowed_paths);
+
+  // Match each menu item path.
+  foreach (array_keys($items) as $path) {
+    // Don't bother converting to lowercase, since we're comparing a white list
+    // of internal path patterns to those set by hook_menu().
+    if (!drupal_match_path($path, $pages)) {
+      $items[$path]['access callback'] = FALSE;
+    }
+  }
+}
+
+/**
+ * Defines a default white list of allowed paths to be spared.
+ *
+ * This can be overridden by the Drupal variable 'ndf_allowed_paths'.
+ *
+ * @return array
+ *   A list of internal drupal path patterns, suitable for the $patterns param
+ *   of drupal_match_path(). Invocations of this hook will explode the array
+ *   with '\n', so just return an array.
+ *
+ * @see ndf_menu_alter()
+ */
+function ndf_allowed_paths() {
+  return array(
+    // Base core admin paths.
+    'admin',
+    'admin/compact',
+    'admin/tasks',
+    'admin/index',
+    // Applicable core admin sections.
+    'admin/content*',
+    'admin/structure*',
+    'admin/people*',
+    'admin/modules*',
+    'admin/config*',
+    'user*',
+    'system*',
+    // Allow all JS paths for now.
+    'js*',
+    // For fun, support contrib admin_menu.module paths.
+    'admin_menu*',
+  );
+}
+
+/**
+ * Defines a default black list of frontend modules to be disabled on install.
+ *
+ * This can be overridden by the Drupal variable 'ndf_disable_module_list'.
+ *
+ * @return array
+ *   A list of additional module names to be disabled.
+ *
+ * @see ndf_install()
+ */
+function ndf_disable_module_list() {
+  // List core modules that are safe to disable.
+  return array(
+    'aggregator',
+    'blog',
+    'block',
+    'color',
+    'contact',
+    'contextual',
+    // Investigate why we can't disable this (apart from required = TRUE).
+    //'filter',
+    'forum',
+    'help',
+    'menu',
+    'overlay',
+    'path',
+    // Just because it's evil.
+    'php',
+    'poll',
+    'profile',
+    'rdf',
+    // The administrative use-case for this is handled by good admin screens.
+    'search',
+    'shortcut',
+    'tracker',
+  );
+}

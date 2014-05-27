@@ -79,6 +79,17 @@ function ndf_allowed_paths() {
     // File (core).
     'file/ajax',
     'file/progress',
+
+    // Contrib File entity module.
+    'file/add',
+    'file/add/upload',
+    // @todo Change paths like this to MENU_DEFAULT_LOCAL_TASK.
+    'file/*/usage',
+    'file/*/download',
+    'file/*/edit',
+    'file/*/delete',
+    // @todo Account for dynamic paths, like "Manage file display" tab from
+    //   file_entity_menu().
   );
 }
 

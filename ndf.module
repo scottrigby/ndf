@@ -43,7 +43,7 @@ function ndf_menu_alter(&$items) {
       'uri' => 'taxonomy/term/%taxonomy_term/view',
       'base' => 'taxonomy/term/%taxonomy_term',
       'position' => 2,
-      'redirect' => 'taxonomy/term/%taxonomy_term/edit',
+      'redirect' => 'taxonomy/term/%id/edit',
     ),
   );
   foreach ($entity_items as $entity_type => $item) {

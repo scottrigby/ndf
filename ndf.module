@@ -82,6 +82,12 @@ function ndf_entity_redirect($entity, $entity_type, $redirect_pattern) {
     }
   }
 
+  // Before redirecting, ensure this will not break cron.
+  // See @link https://drupal.org/node/102138 Drupal.org issue. @endlink
+  if (php_sapi_name() == 'cli' || preg_match('/\/cron.php$/', $_SERVER['SCRIPT_NAME']) || current_path() == 'admin/reports/status/run-cron') {
+    return FALSE;
+  }
+
   drupal_goto($path);
 }
 

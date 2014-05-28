@@ -109,6 +109,7 @@ function ndf_boot() {
  * @see ndf_menu_alter()
  */
 function ndf_allowed_paths() {
+  $directory_path = file_stream_wrapper_get_instance_by_scheme('public')->getDirectoryPath();
   return array(
     // Base core admin paths.
     'admin',
@@ -133,6 +134,8 @@ function ndf_allowed_paths() {
     'taxonomy*',
     // File (core) and File entity contrib module.
     'file*',
+    // Include public files directory path.
+    $directory_path . '*',
   );
 }
 

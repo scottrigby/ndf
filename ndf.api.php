@@ -34,5 +34,28 @@ function hook_ndf_allowed_paths() {
 }
 
 /**
+ * Implements hook_ndf_entity_remap().
+ *
+ * @return array
+ *   An associative of entity remap info, keyed by entity type including:
+ *   - path: The entity view URI.
+ *   - tab_root: Optional. See hook_menu() item tab_root key.
+ *   - position: The entity's wildcard object loader position. Will be used as
+ *     the $position param to call menu_get_object().
+ *   - redirect: The redirect path pattern. The wildcard will be replaced with
+ *     the menu loaded entity's ID.
+ */
+function hook_ndf_entity_remap() {
+  return array(
+    'my_entity' => array(
+      'path' => 'my_entity/%my_entity/view',
+      'tab_root' => 'my_entity/%my_entity',
+      'position' => 1,
+      'redirect' => 'my_entity/%my_entity/edit',
+    ),
+  );
+}
+
+/**
  * @} End of "addtogroup hooks".
  */

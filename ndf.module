@@ -26,33 +26,43 @@ function ndf_menu_alter(&$items) {
   // modify every Drupal admin form that links to a frontend display - such as
   // node_admin_content() - and also so we don't need to explicitly white list
   // every entity path but their frontend URI callback paths.
-  $entity_items = array(
-    'node' => array(
-      'uri' => 'node/%node/view',
-      'base' => 'node/%node',
-      'position' => 1,
-      'redirect' => 'node/%id/edit',
-    ),
-    'file' => array(
-      'uri' => 'file/%file/view',
-      'base' => 'file/%file',
-      'position' => 1,
-      'redirect' => 'file/%id/edit',
-    ),
-    'taxonomy_term' => array(
-      'uri' => 'taxonomy/term/%taxonomy_term/view',
-      'base' => 'taxonomy/term/%taxonomy_term',
-      'position' => 2,
-      'redirect' => 'taxonomy/term/%id/edit',
-    ),
-  );
+  $entity_items = module_invoke_all('ndf_entity_remap');
   foreach ($entity_items as $entity_type => $item) {
-    if (isset($items[$item['uri']]) && $items[$item['base']]) {
-      $items[$item['uri']]['access callback'] = FALSE;
-      $items[$item['base']]['page callback'] = 'ndf_entity_redirect';
-      $items[$item['base']]['page arguments'] = array($item['position'], $entity_type, $item['redirect']);
+    // Support Drupal's MENU_DEFAULT_LOCAL_TASK behavior.
+    if (isset($item['tab_root'])) {
+      // In this case we want to disable access to the entity view tab.
+      $items[$item['path']]['access callback'] = FALSE;
+      // We then want to redirect from the parent tab to the edit path.
+      $items[$item['tab_root']]['page callback'] = 'ndf_entity_goto';
+      $items[$item['tab_root']]['page arguments'] = array($item['position'], $entity_type, $item['redirect']);
     }
   }
+}
+
+/**
+ * Implements hook_ndf_entity_remap().
+ */
+function ndf_ndf_entity_remap() {
+  return array(
+    'node' => array(
+      'path' => 'node/%node/view',
+      'tab_root' => 'node/%node',
+      'position' => 1,
+      'redirect' => 'node/%/edit',
+    ),
+    'file' => array(
+      'path' => 'file/%file/view',
+      'tab_root' => 'file/%file',
+      'position' => 1,
+      'redirect' => 'file/%/edit',
+    ),
+    'taxonomy_term' => array(
+      'path' => 'taxonomy/term/%taxonomy_term/view',
+      'tab_root' => 'taxonomy/term/%taxonomy_term',
+      'position' => 2,
+      'redirect' => 'taxonomy/term/%/edit',
+    ),
+  );
 }
 
 /**
@@ -64,13 +74,13 @@ function ndf_menu_alter(&$items) {
  *   The entity type.
  * @param string $redirect_pattern
  *   A string representing the redirect path pattern. May include tokens:
- *   - %entity_id: The entity ID.
+ *   - %: The entity ID.
  *   The reason for this is in Drupal 7 there no generic edit uri, equivalent to
  *   the display 'uri callback' in hook_entity_info().
  */
-function ndf_entity_redirect($entity, $entity_type, $redirect_pattern) {
+function ndf_entity_goto($entity, $entity_type, $redirect_pattern) {
   list($id, $rid, $bundle) = entity_extract_ids($entity_type, $entity);
-  $path = str_replace('%id', $id, $redirect_pattern);
+  $path = str_replace('%', $id, $redirect_pattern);
 
   if (!isset($path)) {
     $path = variable_get('site_frontpage');
@@ -85,7 +95,7 @@ function ndf_entity_redirect($entity, $entity_type, $redirect_pattern) {
   // Before redirecting, ensure this will not break cron.
   // See @link https://drupal.org/node/102138 Drupal.org issue. @endlink
   if (php_sapi_name() == 'cli' || preg_match('/\/cron.php$/', $_SERVER['SCRIPT_NAME']) || current_path() == 'admin/reports/status/run-cron') {
-    return FALSE;
+    return;
   }
 
   drupal_goto($path);

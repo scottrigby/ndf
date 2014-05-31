@@ -57,5 +57,24 @@ function hook_ndf_entity_remap() {
 }
 
 /**
+ * Defines a breadcrumb replacement path for an entity type.
+ *
+ * @param object $entity
+ *   The current entity. In many cases this will be unnecessary, but some
+ *   administration parent paths contain wildcard object loaders (like
+ *   %$taxonomy_vocabulary_machine_name), which need to be populated from the
+ *   current entity object. Note this is not an easy thing to get (see
+ *   hook_admin_menu_map() for a fun example).
+ *
+ * @return string
+ *   A breadcrumb replacement path for the entity.
+ */
+function hook_ndf_ENTITY_TYPE_breadcrumb_path($entity) {
+  // Example: taxonomy_term entities will have breadcrumb parents matching it's
+  // administrative parent menu item.
+  return 'admin/structure/taxonomy/' . $entity->vocabulary_machine_name;
+}
+
+/**
  * @} End of "addtogroup hooks".
  */

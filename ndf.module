@@ -113,6 +113,88 @@ function ndf_boot() {
 }
 
 /**
+ * Implements hook_page_delivery_callback_alter().
+ *
+ * Sets breadcrumb for entities to match their administrative parent.
+ *
+ * Note we aren't setting the parent menu item active trail because we want to
+ * retain the entity tabs.
+ *
+ * @see menu_trail_by_path_page_delivery_callback_alter()
+ */
+function ndf_page_delivery_callback_alter() {
+  // Include hook implementations on behalf of core entities.
+  include_once('ndf.breadcrumb.inc');
+
+  foreach(module_invoke_all('ndf_entity_remap') as $entity_type => $entity_remap) {
+    if (isset($entity_remap['position']) && $entity = menu_get_object($entity_type, $entity_remap['position'])) {
+      if ($breadcrumb_paths = module_invoke_all('ndf_' . $entity_type . '_breadcrumb_path', $entity)) {
+        // We can only use one.
+        // @todo convert this from hook to callback signature.
+        $breadcrumb_path = reset($breadcrumb_paths);
+      }
+    }
+  }
+
+  // Only act if we have a defined parent path.
+  if (!isset($breadcrumb_path)) {
+    return;
+  }
+
+  $pieces = explode('/', $breadcrumb_path);
+  $path = '';
+  $parent_candidates = array();
+  foreach ($pieces as $piece) {
+    $path .= $piece . '/';
+    $parent_candidates[] = drupal_get_normal_path(rtrim($path, '/'));
+  }
+
+  // Find link items matching the parent candidates in all menus.
+  $matched_menus = array();
+  $matched_link_titles = array();
+  $results = db_select('menu_links','ml')
+    ->fields('ml',array('menu_name','mlid','link_path','link_title','depth'))
+    ->condition('link_path',$parent_candidates,'IN')
+    ->execute();
+
+  foreach ($results as $record) {
+    // If there is more than one matched link in a menu, use the deepest.
+    if (!isset($matched_menus[$record->menu_name]) || $record->depth > $matched_menus[$record->menu_name]['depth']) {
+      $matched_menus[$record->menu_name]['link_path'] = $record->link_path;
+      $matched_menus[$record->menu_name]['depth'] = $record->depth;
+    }
+
+    // Get the Link Title if it can be found in a menu item.
+    if ($record->link_title && !isset($matched_link_titles[$record->link_path])) {
+      $matched_link_titles[$record->link_path] = $record->link_title;
+    }
+  }
+
+  // Set the active-trail for each menu containing one of the candidates.
+  foreach ($matched_menus as $menu_name => $menu_link) {
+    menu_tree_set_path($menu_name, $menu_link['link_path']);
+  }
+
+  // Also set breadcrumb according to path URL as well.
+  if (variable_get('menu_trail_by_path_breadcrumb_handling', TRUE)) {
+    // First breadcrumbs is always Home.
+    $breadcrumbs[] = l(t('Home'),'<front>');
+
+    foreach($parent_candidates as $link_path) {
+      // If title of the page is found on a menu item, use it.
+      if (isset($matched_link_titles[$link_path])) {
+        $breadcrumbs[] = l($matched_link_titles[$link_path],$link_path);
+      }
+      // Otherwise, use slow method to find out the title of page.
+      elseif ($menu_item = menu_get_item($link_path)) {
+        $breadcrumbs[] = l($menu_item['title'],$link_path);
+      }
+    }
+    drupal_set_breadcrumb($breadcrumbs);
+  }
+}
+
+/**
  * Implements hook_ndf_allowed_paths().
  */
 function ndf_ndf_allowed_paths() {

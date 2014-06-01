@@ -9,15 +9,15 @@
  * Implements hook_menu_alter().
  */
 function ndf_menu_alter(&$items) {
-  $allowed_paths = module_invoke_all('ndf_allowed_paths');
   // Separate with \n for drupal_match_path().
-  $pages = implode(PHP_EOL, $allowed_paths);
+  $allowed_paths = implode(PHP_EOL, module_invoke_all('ndf_allowed_paths'));
+  $disallowed_paths = implode(PHP_EOL, module_invoke_all('ndf_disallowed_paths'));
 
   // Match each menu item path.
   foreach (array_keys($items) as $path) {
     // Don't bother converting to lowercase, since we're comparing a white list
     // of internal path patterns to those set by hook_menu().
-    if (!drupal_match_path($path, $pages)) {
+    if (!drupal_match_path($path, $allowed_paths) || drupal_match_path($path, $disallowed_paths)) {
       $items[$path]['access callback'] = FALSE;
     }
   }
@@ -225,6 +225,16 @@ function ndf_ndf_allowed_paths() {
     'file*',
     // Include public files directory path.
     $directory_path . '*',
+  );
+}
+
+/**
+ * Implements hook_ndf_disallowed_paths().
+ */
+function ndf_ndf_disallowed_paths() {
+  return array(
+    'admin/config/services/rss-publishing',
+    'admin/config/content/formats',
   );
 }
 

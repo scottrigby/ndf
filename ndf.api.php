@@ -34,6 +34,16 @@ function hook_ndf_allowed_paths() {
 }
 
 /**
+ * Implements hook_ndf_disallowed_paths().
+ */
+function hook_ndf_disallowed_paths() {
+  return array(
+    'admin/config/search/clean-urls',
+    'some/other/path/i/dislike',
+  );
+}
+
+/**
  * Implements hook_ndf_entity_remap().
  *
  * @return array

@@ -6,6 +6,7 @@ What is it?
 Removes Drupal's frontend, when using Drupal as a services layer only.
 
 Specifically:
+
 1. Uninstalls frontend-only core modules (some are truly only useful when Drupal renders the frontend)
 2. For all other core modules, removes access to the paths only useful to Drupal's frontend
 3. Redirects disallowed paths to user login or, (if allowed) to the admin screen

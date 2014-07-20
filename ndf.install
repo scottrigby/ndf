@@ -31,7 +31,6 @@ function ndf_uninstall() {
   menu_rebuild();
 
   // Cleanup NDF variables.
-  variable_del('ndf_allowed_paths');
   variable_del('ndf_disable_module_list');
 }
 

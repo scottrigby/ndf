@@ -211,6 +211,7 @@ function ndf_ndf_allowed_paths() {
     'admin/people*',
     'admin/modules*',
     'admin/config*',
+    'admin/reports*',
     'user*',
     'system*',
     // Allow all JS paths for now.
